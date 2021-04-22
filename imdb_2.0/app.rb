@@ -10,3 +10,8 @@ enable :sessions
 get('/') do
     slim(:login)
 end
+
+get('/showregister') do
+  slim(:register)
+
+end
