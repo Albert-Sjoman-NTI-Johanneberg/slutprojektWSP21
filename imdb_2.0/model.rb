@@ -26,11 +26,12 @@ post('/login') do
     id = session[:id].to_i
     db = SQLite3::Database.new("db/imdb.db")
     db.results_as_hash = true
-    #result = db.execute("SELECT * FROM To_do WHERE UserId = ?", id)
-    #p "Alla todosfrån resultat #{result}"
-    slim(:"movies/index")#, locals:{todos:result})
+    result = db.execute("SELECT * FROM movie WHERE UserId = ?", id)
+    p result
+    slim(:"movies/index", locals:{movie:result})
   
   end
+
 post("/users/new") do 
   username = params[:username]
   password = params[:password]
@@ -46,10 +47,43 @@ post("/users/new") do
       redirect("/")
 
     else
-      "lösenorden matchade inte"
+      redirect("/showregister")
     end
   
   else
-    "Username already exist"
+    redirect("/showregister")
+  end
+end
+
+def get_allinfo_from_user(userId);
+  db = SQLite3::Database.new("db/imdb.db")
+  db.results_as_hash = true
+  user_review_data = db.execute('SELECT * FROM review WHERE userId = ?', userId).first
+  user_movie_data = db.execute('SELECT * FROM movie WHERE userId = ?', userId).first
+  user_data = db.execute('SELECT username,description From users Where Id = ? ', userId).first
+
+  p user_review_data
+  p user_movie_data
+  p user_data
+
+  #Validering om man inte har gjort en review eller en movie (För ERROR, hash NIL)
+
+  if user_review_data == nil 
+    if user_movie_data == nil
+      result = user_data
+      return result
+    else
+      result = user_movie_data.merge(user_data)
+      return result
+    end
+  else
+    if user_movie_data == nil
+      result = user_review_data.merge(user_data)
+      return result
+    else
+      temp = user_movie_data.merge(user_data)
+      result = temp.merge(user_review_data)
+      return result
+    end
   end
 end
