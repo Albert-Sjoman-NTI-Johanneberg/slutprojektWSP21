@@ -55,35 +55,39 @@ post("/users/new") do
   end
 end
 
-def get_allinfo_from_user(userId);
+def get_user_data(userId);
   db = SQLite3::Database.new("db/imdb.db")
   db.results_as_hash = true
-  user_review_data = db.execute('SELECT * FROM review WHERE userId = ?', userId).first
-  user_movie_data = db.execute('SELECT * FROM movie WHERE userId = ?', userId).first
   user_data = db.execute('SELECT username,description From users Where Id = ? ', userId).first
 
-  p user_review_data
-  p user_movie_data
   p user_data
+end
 
-  #Validering om man inte har gjort en review eller en movie (För ERROR, hash NIL)
+def get_user_movie_data(userId);
+  db = SQLite3::Database.new("db/imdb.db")
+  db.results_as_hash = true
+  user_movie_data = db.execute('SELECT * FROM movie WHERE userId = ?', userId)
+  
+  p user_movie_data
+end
 
-  if user_review_data == nil 
-    if user_movie_data == nil
-      result = user_data
-      return result
-    else
-      result = user_movie_data.merge(user_data)
-      return result
-    end
-  else
-    if user_movie_data == nil
-      result = user_review_data.merge(user_data)
-      return result
-    else
-      temp = user_movie_data.merge(user_data)
-      result = temp.merge(user_review_data)
-      return result
-    end
-  end
+def get_user_review_data(userId);
+  db = SQLite3::Database.new("db/imdb.db")
+  db.results_as_hash = true
+  user_review_data = db.execute('SELECT * FROM review WHERE userId = ?', userId)
+
+  p user_review_data
+end
+
+def search_file_ending(original_filename)
+  array = original_filename.split(".")
+  result = "." + array[1]
+  return result
+end
+
+
+def add_movie(movie_name, description, img_path, user_id) 
+  db = SQLite3::Database.new("db/imdb.db")
+  db.results_as_hash = true
+  db.execute("INSERT INTO movie (Titel, Content, img, UserId) VALUES (?,?,?,?)",movie_name,description,img_path,user_id)
 end

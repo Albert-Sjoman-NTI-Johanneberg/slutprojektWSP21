@@ -1,1 +1,24 @@
-p your user
+p = info["username"]
+
+h2 Your Movies:
+-movie.each do |movie|
+        article class="movie"
+            p class="movie_name" = movie["Titel"] 
+            p class="movie_desc" = movie["Content"] 
+            img src="#{movie["img"]}" alt="Image not found" class="picture"
+
+- if movie == []
+    p You have not added any movies.
+
+a href="/movies/new" Create new movie
+
+h2 Your reviews:
+
+- if review == []
+    p You have not reviewed any movies.
+    p You can review a movie by going to the home screen and clicking review on a movie
+
+- review.each do |movie|
+    p = movie["Titel"]
+
+a href="/reviews/new" Create a new review (ta bort senare och sätt vid home)
