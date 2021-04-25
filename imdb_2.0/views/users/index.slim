@@ -1,15 +1,30 @@
+h3 Your Username: 
 p = info["username"]
 
+
+h3 Your Description:
+p = info["description"]
+- if movie == []
+    p You don't have a description (DEMO)
+
+h4 
+    a href='/users/edit/#{session[:id]}'Edit profile
+
+
 h2 Your Movies:
--movie.each do |movie|
-        article class="movie"
-            p class="movie_name" = movie["Titel"] 
-            p class="movie_desc" = movie["Content"] 
+.container
+    - movie.each do |movie|
+        div class="movie"
+            h4 = movie["Titel"]
+            h5 = movie["Content"]
             img src="#{movie["img"]}" alt="Image not found" class="picture"
+            h4  
+                a href="movies/edit/#{movie['Id']}" Edit
+
 
 - if movie == []
     p You have not added any movies.
-
+p  
 a href="/movies/new" Create new movie
 
 h2 Your reviews:
@@ -18,7 +33,19 @@ h2 Your reviews:
     p You have not reviewed any movies.
     p You can review a movie by going to the home screen and clicking review on a movie
 
-- review.each do |movie|
-    p = movie["Titel"]
 
-a href="/reviews/new" Create a new review (ta bort senare och sätt vid home)
+.container
+    - movie_review.each do |movie|
+        div class="movie"
+            h4 = movie[0]["Titel"]
+            h5 = movie[0]["Content"]
+            img src="#{movie[0]["img"]}" alt="Image not found" class="picture"
+            p
+            h4 = movie[1]["Titel"]
+            h5 = movie[1]["Content"]
+            h4 = "Rating: #{movie[1]["Rating"]}"
+            h4  
+                a href="reviews/edit/#{movie[1]['Id']}" Edit
+
+
+

@@ -1,15 +1,20 @@
-h1 SITE
-
-h2 id är #{session[:id]}
-
-a href="/users" proflie
+h1 Welcome to Imdb 2.0
 
 
 
 
+.container
+    - movie.each do |movie|
+        div class="movie"
+            h1 = movie["Titel"]
+            h5 = movie["Content"]
+            img src="#{movie["img"]}" alt="Image not found" class="picture"
+            h3 = "Rating: #{movie["Rating"]}"
+            h4 
+                a href="/review/new/#{movie["Id"]}" Review movie
 
 
-- movie.each do |movie|
-    p = movie["Titel"]
-    img src="#{movie["img"]}" alt="Image not found" class="picture"
+
+
+
       

@@ -1,0 +1,10 @@
+h1 Edit #{result['Titel']}
+
+
+form action="/movies/edit/#{result['Id']}" method="post"
+    input type="text" name="titel" value="#{result['Titel']}"/
+    input type="text" name="desc" value="#{result['Content']}"/
+    input type="submit" value="Edit it"/
+
+form method="POST" action="delete/#{result['Id']}"
+    input type="submit" value="delete"/

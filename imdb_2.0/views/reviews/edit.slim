@@ -1,0 +1,21 @@
+h1 Edit review 
+
+form action="/reviews/edit/#{result['Id']}" method="post"
+    input type="text" name="titel" value="#{result['Titel']}"/
+    input type="text" name="desc" value="#{result['Content']}"/
+    <select id="rating" name="rating">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    input type="submit" value="Edit it"/
+
+
+form method="POST" action="delete/#{result['Id']}"
+    input type="submit" value="delete"/
