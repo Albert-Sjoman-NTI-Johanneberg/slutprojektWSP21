@@ -28,6 +28,12 @@ get('/users') do
   #När du hämtar movie data ta med titel m.m från filmen som reviewades
 end
 
+get("/movies") do
+  id = session[:id].to_i
+  result = get_movies_from_db(id)
+  slim(:"movies/index", locals:{movie:result})
+
+end
 
 get('/movies/new') do
 

@@ -20,17 +20,8 @@ post('/login') do
   
   end
 
-  
 
-  get("/movies") do
-    id = session[:id].to_i
-    db = SQLite3::Database.new("db/imdb.db")
-    db.results_as_hash = true
-    result = db.execute("SELECT * FROM movie WHERE UserId = ?", id)
-    p result
-    slim(:"movies/index", locals:{movie:result})
-  
-  end
+
 
 post("/users/new") do 
   username = params[:username]
@@ -53,6 +44,13 @@ post("/users/new") do
   else
     redirect("/showregister")
   end
+end
+
+
+def get_movies_from_db(id)
+  db = SQLite3::Database.new("db/imdb.db")
+  db.results_as_hash = true
+  result = db.execute("SELECT * FROM movie WHERE UserId = ?", id)
 end
 
 def get_user_data(userId);
