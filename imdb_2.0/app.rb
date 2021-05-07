@@ -92,8 +92,9 @@ get("/movies") do
   else
     rating = medel_rating()
     result = get_movies_from_db()
-
-    slim(:"movies/index", locals:{movie:result})
+    user_reviews = get_user_review_data(userid)
+    p user_reviews
+    slim(:"movies/index", locals:{movie:result,review:user_reviews})
   end
 end
 
@@ -161,7 +162,7 @@ end
 
 post('/movies/edit/:id') do
   id = params[:id].to_i
-  titel = params[:titel]
+  title = params[:titel]
   desc = params[:desc]
   update_movie(title,id,desc)
   redirect('/users')

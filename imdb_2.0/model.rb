@@ -23,7 +23,7 @@ end
 
 def update_movie(title,id,desc)
   db = SQLite3::Database.new("db/imdb.db")
-  db.execute('UPDATE movie SET titel = ?, Content = ? WHERE Id = ?',titel,desc,id)
+  db.execute('UPDATE movie SET titel = ?, Content = ? WHERE Id = ?',title,desc,id)
 end
 
 def update_review(id,titel,desc,rating)
