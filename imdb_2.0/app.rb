@@ -10,7 +10,6 @@ require 'securerandom'
 enable :sessions
 
 # TO DO
-# validate så man inte kan edita andras reviews/movies
 # Admin. Kanske gör en i db 
 # relationstabeller / genre 
 # Yardoc
@@ -18,22 +17,38 @@ enable :sessions
 # cooldown o allmänna valideringar
 # titta egenom namn givning
 # ON DELTE CASCADE / kanske har gjort det redan
-
+#BUG: 
+#om man reload sidan får man before do error / Kanske bara ta bort det erroret 
 
 
 
 before do 
   # Validerar att du har loggat in
-  p session[:id]
-  if (session[:id] == nil) && (request.path_info != '/') && (request.path_info != '/login') && (request.path_info != '/showregister')
-    session[:error] = "You have to log in to view this content"
-    # p session[:error]
+  if (session[:id] == nil) && (request.path_info != '/') && (request.path_info != '/login') && (request.path_info != '/showregister') && (request.path_info != '')
+    session[:error] = "You have to log in to view this content" 
+    # 
     redirect('/')
   end
 
 end
 
- 
+before('/movies/edit/:id') do
+  id = params[:id].to_i
+  user_id_from_movie = get_userid_from_movie(id)
+  if user_id_from_movie[0][0].to_i != session[:id]
+    session[:error] = "You don't have access to that content"
+    redirect('/')
+  end
+end
+
+before('/reviews/edit/:id') do
+  id = params[:id].to_i
+  user_id_from_movie = get_userid_from_review(id)
+  if user_id_from_movie[0][0].to_i != session[:id]
+    session[:error] = "You don't have access to that content"
+    redirect('/')
+  end
+end
 
 get('/') do
     slim(:"users/login")
@@ -55,10 +70,12 @@ post('/login') do
 
   if password_check(pwdigest,password)
     session[:id] = id
+    session[:error] = nil
     redirect("/movies")
 
   else
-    "FEL LÖSENORD!!"
+    session[:error] = "Wrong username or password"
+    redirect('/')
   end
 
 end
@@ -94,13 +111,16 @@ post("/users/new") do
   if temp.empty?
     if (password == confirm_password)
       password_digest = create_user(username,password)
+      session[:error] = nil
       redirect("/")
 
     else
+      session[:error] = "Passwords didn't match"
       redirect("/showregister")
     end
   
   else
+    session[:error] = "Username already exist"
     redirect("/showregister")
   end
 end

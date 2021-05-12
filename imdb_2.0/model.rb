@@ -87,7 +87,6 @@ def get_user_movie_data(userId);
   db = db_conect("db/imdb.db")
   user_movie_data = db.execute('SELECT * FROM movie WHERE userId = ?', userId)
   
-
 end
 
 def get_user_review_data(userId);
@@ -102,6 +101,15 @@ def search_file_ending(original_filename)
   return result
 end
 
+def get_userid_from_movie(id)
+  db = db_conect_without_hash("db/imdb.db")
+  db.execute("SELECT UserId FROM movie WHERE Id=?",id)  
+end
+
+def get_userid_from_review(id)
+  db = db_conect_without_hash("db/imdb.db")
+  db.execute("SELECT UserId FROM review WHERE Id=?",id)  
+end
 
 def add_movie(movie_name, description, img_path, user_id) 
   db = db_conect("db/imdb.db")

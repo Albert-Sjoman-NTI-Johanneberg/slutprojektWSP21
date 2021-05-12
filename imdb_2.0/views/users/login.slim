@@ -7,4 +7,7 @@ form action="login" method="post"
     input type="text" placeholder="Enter Password" name="password"
     input type="submit" value="Logga in"/
 
+
+h2 class="error" = session[:error]
+
 a href="/showregister" Register

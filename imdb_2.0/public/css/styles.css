@@ -44,3 +44,8 @@ h1,h2,h3,h4,p{
 .movie{
   text-align: center;
 }
+
+.error {
+  color: red;
+
+}
