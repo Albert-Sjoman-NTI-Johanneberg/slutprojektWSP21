@@ -9,6 +9,32 @@ require 'securerandom'
 
 enable :sessions
 
+# TO DO
+# validate så man inte kan edita andras reviews/movies
+# Admin. Kanske gör en i db 
+# relationstabeller / genre 
+# Yardoc
+# projectplan.md beskriv ark
+# cooldown o allmänna valideringar
+# titta egenom namn givning
+# ON DELTE CASCADE / kanske har gjort det redan
+
+
+
+
+before do 
+  # Validerar att du har loggat in
+  p session[:id]
+  if (session[:id] == nil) && (request.path_info != '/') && (request.path_info != '/login') && (request.path_info != '/showregister')
+    session[:error] = "You have to log in to view this content"
+    # p session[:error]
+    redirect('/')
+  end
+
+end
+
+ 
+
 get('/') do
     slim(:"users/login")
 end
@@ -39,11 +65,7 @@ end
 
 get('/users') do
 
-  #Validerar om user har tryckt på user iconen innan inlogning
   userid = session[:id].to_i
-  if userid == 0
-    slim(:"users/login")
-  else
 
   user_data = get_user_data(userid)
   movie_data = get_user_movie_data(userid)
@@ -60,7 +82,6 @@ get('/users') do
 
   p reviewed_movie_data
   slim(:"users/index", locals:{info:user_data, movie:movie_data, review:review_data, movie_review:reviewed_movie_data})
-  end
 end
 
 post("/users/new") do 
@@ -85,17 +106,12 @@ post("/users/new") do
 end
 
 get("/movies") do
-  #Validerar om user har tryckt på imdb iconen innan inlogning
   userid = session[:id].to_i
-  if userid == 0
-    slim(:"users/login")
-  else
-    rating = medel_rating()
-    result = get_movies_from_db()
-    user_reviews = get_user_review_data(userid)
-    p user_reviews
-    slim(:"movies/index", locals:{movie:result,review:user_reviews})
-  end
+  rating = medel_rating()
+  result = get_movies_from_db()
+  user_reviews = get_user_review_data(userid)
+  slim(:"movies/index", locals:{movie:result,review:user_reviews})
+
 end
 
 get('/movies/new') do

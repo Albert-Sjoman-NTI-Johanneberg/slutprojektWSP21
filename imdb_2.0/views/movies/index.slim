@@ -1,6 +1,7 @@
 h1 Welcome to Imdb 2.0
 
 
+- p review
 
 
 .container
@@ -10,8 +11,11 @@ h1 Welcome to Imdb 2.0
             h5 = movie["Content"]
             img src="#{movie["img"]}" alt="Image not found" class="picture"
             h3 = "Rating: #{movie["Rating"]}"
-            h4 
-                a href="/review/new/#{movie["Id"]}" Review movie
+            - if review.any? {|h| h["MovieId"].to_i == movie["Id"]} == true
+                h4 = "You have already reviewed this movie"
+            - else
+                h4 
+                    a href="/review/new/#{movie["Id"]}" Review movie
 
 
 
