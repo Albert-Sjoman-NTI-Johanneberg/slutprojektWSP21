@@ -10,23 +10,22 @@ require 'securerandom'
 enable :sessions
 
 # TO DO
-# Admin. Kanske gör en i db 
+# Edit users
 # relationstabeller / genre 
 # Yardoc
+# helper funktioner vet ej vad jag ska använda dom till
 # projectplan.md beskriv ark
-# cooldown o allmänna valideringar
-# titta egenom namn givning
+# titta egenom namn givning (främst routes)
 # ON DELTE CASCADE / kanske har gjort det redan
 #BUG: 
-#om man reload sidan får man before do error / Kanske bara ta bort det erroret 
+# ERROR när man loggar in med ett konto som inte existerar
 
 
 
 before do 
-  # Validerar att du har loggat in
-  if (session[:id] == nil) && (request.path_info != '/') && (request.path_info != '/login') && (request.path_info != '/showregister') && (request.path_info != '')
-    session[:error] = "You have to log in to view this content" 
-    # 
+
+  if (session[:id] == nil) && (request.path_info != '/') && (request.path_info != '/login') && (request.path_info != '/showregister') && (request.path_info != '/users/new')
+    
     redirect('/')
   end
 
@@ -34,8 +33,10 @@ end
 
 before('/movies/edit/:id') do
   id = params[:id].to_i
+
   user_id_from_movie = get_userid_from_movie(id)
-  if user_id_from_movie[0][0].to_i != session[:id]
+
+  if user_id_from_movie[0][0].to_i != session[:id] && get_admin_info_from_user(user_id_from_movie)[0][0] != "true"
     session[:error] = "You don't have access to that content"
     redirect('/')
   end
@@ -43,8 +44,18 @@ end
 
 before('/reviews/edit/:id') do
   id = params[:id].to_i
+
   user_id_from_movie = get_userid_from_review(id)
-  if user_id_from_movie[0][0].to_i != session[:id]
+
+  if user_id_from_movie[0][0].to_i != session[:id] && get_admin_info_from_user(user_id_from_movie)[0][0] != "true"
+    session[:error] = "You don't have access to that content"
+    redirect('/')
+  end
+end
+
+before('/admin') do
+  id = session[:id]
+  if get_admin_info_from_user(id)[0][0] != "true"
     session[:error] = "You don't have access to that content"
     redirect('/')
   end
@@ -59,7 +70,12 @@ get('/showregister') do
 
 end
 
+
 post('/login') do
+
+  cooldown_minutes = 10
+  max_recent_attemps = 3
+
   username = params[:username]
   password = params[:password]
 
@@ -67,14 +83,38 @@ post('/login') do
 
   pwdigest = result["pwdigest"]
   id = result["Id"]
+  
+  
+  attempts = get_attemps(id)
 
-  if password_check(pwdigest,password)
-    session[:id] = id
-    session[:error] = nil
-    redirect("/movies")
+
+  recent_attemps = []
+
+  attempts.each do |attempts|
+
+
+    if (Time.now - Time.parse(attempts[0])) < cooldown_minutes*60
+      recent_attemps << attempts
+    end
+  end
+
+
+
+  if recent_attemps.length <= max_recent_attemps
+
+    if password_check(pwdigest,password)
+      session[:id] = id
+      session[:error] = nil
+      redirect("/movies")
+
+    else
+      session[:error] = "Incorrect username or password"
+      time_allfail_user_login(id)
+      redirect('/')
+    end
 
   else
-    session[:error] = "Wrong username or password"
+    session[:error] = "Incorrect username or password, try again later"
     redirect('/')
   end
 
@@ -93,11 +133,10 @@ get('/users') do
   reviewed_movie_data = []
   review_data.each do |rev|
     temp = rev["MovieId"]
-    reviewed_movie_data << getreviewed_movie_data(temp)
+    reviewed_movie_data << getreviewed_movie_data(temp, userid)
 
   end
 
-  p reviewed_movie_data
   slim(:"users/index", locals:{info:user_data, movie:movie_data, review:review_data, movie_review:reviewed_movie_data})
 end
 
@@ -105,12 +144,13 @@ post("/users/new") do
   username = params[:username]
   password = params[:password]
   confirm_password = params[:confirm_password]
-  
+  admin = 0
+
   temp = id_from_user(username)
   
   if temp.empty?
     if (password == confirm_password)
-      password_digest = create_user(username,password)
+      password_digest = create_user(username,password,admin)
       session[:error] = nil
       redirect("/")
 
@@ -165,6 +205,24 @@ get('/review/new/:id') do
   session[:movieId] = id
   result = specific_movie(id)
   slim(:"reviews/new",locals:{movie:result})
+end
+
+get('/admin') do
+
+  all_user_data = get_all_user_data()
+  all_movie_data = get_movies_from_db()
+  all_review_data = get_all_review_data()
+
+
+  #Hämtar data om filmerna som userna har gjort en review på
+  reviewed_movie_data = []
+  all_review_data.each do |rev|
+    temp = rev["MovieId"]
+    reviewed_movie_data << get_all_reviewed_movie_data(temp)
+
+  end 
+  #review:all_review_data,
+  slim(:admin, locals:{info:all_user_data, movie:all_movie_data, movie_review:reviewed_movie_data})
 end
 
 post('/review') do

@@ -1,20 +1,16 @@
-h3 Your Username: 
-p = info["username"]
+h1 Admin Panel
 
-- if info["admin"] == "true"
-    h4
-        a href="/admin" Admin Panel
+h2 Users:
+.div
+    - info.each do |user|
+        div 
+            h2 class="user_admin" = user["username"] 
+            h4 class="user_admin" = user["description"] 
+            h4 class="user_admin" = user["admin"]
+            h4 class="user_admin"
+                a href="users/edit/#{user['Id']}" Edit User
 
-h3 Your Description:
-p = info["description"]
-- if movie == []
-    p You don't have a description (DEMO)
-
-h4 
-    a href='/users/edit/#{session[:id]}'Edit profile
-
-
-h2 Your Movies:
+h2 Movies:
 .container
     - movie.each do |movie|
         div class="movie"
@@ -25,18 +21,8 @@ h2 Your Movies:
                 a href="movies/edit/#{movie['Id']}" Edit
 
 
-- if movie == []
-    p You have not added any movies.
-p  
-a href="/movies/new" Create new movie
 
-h2 Your reviews:
-
-- if review == []
-    p You have not reviewed any movies.
-    p You can review a movie by going to the home screen and clicking review on a movie
-
-
+h2 Reviews:
 .container
     - movie_review.each do |movie|
         div class="movie"
@@ -49,6 +35,4 @@ h2 Your reviews:
             h4 = "Rating: #{movie[1]["Rating"]}"
             h4  
                 a href="reviews/edit/#{movie[1]['Id']}" Edit
-
-
 

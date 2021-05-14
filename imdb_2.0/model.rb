@@ -7,17 +7,37 @@ def password_check(pwdigest,password)
   BCrypt::Password.new(pwdigest) == password
 end
 
-def create_user(username,password)
+def time_allfail_user_login(id)
+
+time = Time.now.to_s
+db = db_conect("db/imdb.db")
+db.execute('INSERT INTO logins_failed (time,Userid) Values (?,?)', time,id)
+
+end
+
+def get_attemps(id)
+  db = db_conect_without_hash("db/imdb.db")
+  times = db.execute('Select time FROM logins_failed WHERE Userid = ?', id)
+  return times
+end
+
+def create_user(username,password,admin)
   password_digest = BCrypt::Password.create(password)
   db = db_conect_without_hash("db/imdb.db")
-  db.execute('INSERT INTO Users (username,pwdigest) VALUES (?,?)', username,password_digest)
+  db.execute('INSERT INTO Users (username,pwdigest,admin) VALUES (?,?,?)', username,password_digest,admin)
   password_digest = BCrypt::Password.create(password)
 end
 
 def id_from_user(username)
   db = db_conect_without_hash("db/imdb.db")
-  temp = db.execute("SELECT Id FROM users WHERE username = ?", username)
-  return temp
+  ids = db.execute("SELECT Id FROM users WHERE username = ?", username)
+  return ids
+end
+
+def get_admin_info_from_user(id)
+  db = db_conect_without_hash("db/imdb.db")
+  admin = db.execute("SELECT admin FROM users WHERE Id = ?", id)
+  return admin
 end
 
 def update_movie(title,id,desc)
@@ -51,6 +71,7 @@ def db_conect_without_hash(data)
   db = SQLite3::Database.new(data)
   return db
 end
+
 def db_conect(data)
   db = SQLite3::Database.new(data)
   db.results_as_hash = true
@@ -65,7 +86,7 @@ end
 
 def get_user_data(userId);
   db = db_conect("db/imdb.db")
-  user_data = db.execute('SELECT username,description From users Where Id = ? ', userId).first
+  user_data = db.execute('SELECT username,description,admin From users Where Id = ? ', userId).first
 end
 
 def review_movie(id)
@@ -121,8 +142,7 @@ def create_review(title, desc, rating, movieId, user_id)
   db.execute("INSERT INTO review (Titel, Content, Rating, MovieId, UserId) VALUES (?,?,?,?,?)",title, desc, rating, movieId, user_id)
 end
 
-def getreviewed_movie_data(temp)
-  userId = session[:id]
+def getreviewed_movie_data(temp, userId)
   db = db_conect("db/imdb.db")
   reviewmovie_data = db.execute('SELECT * FROM movie WHERE Id = ?', temp)
   review_data = db.execute('SELECT * FROM review WHERE MovieId = ? AND userId = ?', temp, userId)
@@ -130,6 +150,27 @@ def getreviewed_movie_data(temp)
 
   return temp2
 end
+
+def get_all_user_data() 
+  db = db_conect("db/imdb.db")
+  user_data = db.execute('SELECT username, description, Id, admin FROM users')
+  return user_data
+end
+
+def get_all_review_data()
+ db = db_conect("db/imdb.db")
+ review_data = db.execute('SELECT * FROM review')
+end
+
+def get_all_reviewed_movie_data(temp)
+  db = db_conect("db/imdb.db")
+  reviewmovie_data = db.execute('SELECT * FROM movie WHERE Id = ?', temp)
+  review_data = db.execute('SELECT * FROM review WHERE MovieId = ?', temp)
+  data = reviewmovie_data + review_data
+
+  return data
+end
+
 
 def medel_rating() 
   db = db_conect("db/imdb.db")
@@ -152,7 +193,7 @@ def medel_rating()
         i += 1
 
       end
-    p movie
+
     if i != 0
       total = total / i
       total = total.round(1)
