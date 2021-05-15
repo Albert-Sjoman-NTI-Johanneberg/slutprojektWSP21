@@ -17,7 +17,7 @@ include Model
 # Yardoc
 # helper funktioner vet ej vad jag ska använda dom till
 #BUG: 
-
+#
 
 
 before do 
