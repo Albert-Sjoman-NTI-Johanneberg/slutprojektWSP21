@@ -11,7 +11,7 @@ p = info["description"]
     p You don't have a description (DEMO)
 
 h4 
-    a href='/users/edit/#{session[:id]}'Edit profile
+    a href='/users/#{session[:id]}/edit'Edit profile
 
 
 h2 Your Movies:
@@ -22,7 +22,7 @@ h2 Your Movies:
             h5 = movie["Content"]
             img src="#{movie["img"]}" alt="Image not found" class="picture"
             h4  
-                a href="movies/edit/#{movie['Id']}" Edit
+                a href="movies/#{movie['Id']}/edit" Edit
 
 
 - if movie == []
@@ -48,7 +48,7 @@ h2 Your reviews:
             h5 = movie[1]["Content"]
             h4 = "Rating: #{movie[1]["Rating"]}"
             h4  
-                a href="reviews/edit/#{movie[1]['Id']}" Edit
+                a href="reviews/#{movie[1]['Id']}/edit" Edit
 
 
 

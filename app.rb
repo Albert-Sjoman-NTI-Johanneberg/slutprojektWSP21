@@ -9,16 +9,14 @@ require 'securerandom'
 
 enable :sessions
 
+include Model
+
 # TO DO
-# Edit users
 # relationstabeller / genre 
+# genre: behöver en gengre minst (db, NOTnil) ha knappar i movies som man kan välja mellan olika gengers använd movies/show 
 # Yardoc
 # helper funktioner vet ej vad jag ska använda dom till
-# projectplan.md beskriv ark
-# titta egenom namn givning (främst routes)
-# ON DELTE CASCADE / kanske har gjort det redan
 #BUG: 
-# ERROR när man loggar in med ett konto som inte existerar
 
 
 
@@ -31,23 +29,33 @@ before do
 
 end
 
-before('/movies/edit/:id') do
+before('/movies/:id/edit') do
   id = params[:id].to_i
 
   user_id_from_movie = get_userid_from_movie(id)
-
-  if user_id_from_movie[0][0].to_i != session[:id] && get_admin_info_from_user(user_id_from_movie)[0][0] != "true"
+  p get_admin_info_from_user(session[:id])
+  if user_id_from_movie[0][0].to_i != session[:id] && get_admin_info_from_user(session[:id])[0][0] != "true"
     session[:error] = "You don't have access to that content"
     redirect('/')
   end
 end
 
-before('/reviews/edit/:id') do
+before('/reviews/:id/edit') do
   id = params[:id].to_i
 
-  user_id_from_movie = get_userid_from_review(id)
+  user_id_from_review = get_userid_from_review(id)
 
-  if user_id_from_movie[0][0].to_i != session[:id] && get_admin_info_from_user(user_id_from_movie)[0][0] != "true"
+  if user_id_from_review[0][0].to_i != session[:id] && get_admin_info_from_user(session[:id])[0][0] != "true"
+    session[:error] = "You don't have access to that content"
+    redirect('/')
+  end
+end
+
+before('/users/:id/edit') do
+  id = params[:id].to_i
+  current_id = session[:id]
+  
+  if id != current_id && get_admin_info_from_user(session[:id])[0][0] != "true"
     session[:error] = "You don't have access to that content"
     redirect('/')
   end
@@ -80,7 +88,11 @@ post('/login') do
   password = params[:password]
 
   result = get_info_user(username)
-
+  p result
+  if result == nil
+    session[:error] = "Incorrect username or password"
+    redirect('/')
+  end
   pwdigest = result["pwdigest"]
   id = result["Id"]
   
@@ -179,12 +191,6 @@ get('/movies/new') do
   slim(:"movies/new")
 end
 
-get('/reviews/new') do
-
-  slim(:"reviews/new")
-end
-
-
 post("/movie/new") do
   movie_name = params[:movie_name]
   user_id = session[:id]  
@@ -198,13 +204,6 @@ post("/movie/new") do
   FileUtils.cp(params[:file][:tempfile], "./public/img/uploaded_pictures/#{filename}")
   add_movie(movie_name, desc, dbpath, user_id)
   redirect("/users")
-end
-
-get('/review/new/:id') do
-  id = params[:id].to_i
-  session[:movieId] = id
-  result = specific_movie(id)
-  slim(:"reviews/new",locals:{movie:result})
 end
 
 get('/admin') do
@@ -221,11 +220,10 @@ get('/admin') do
     reviewed_movie_data << get_all_reviewed_movie_data(temp)
 
   end 
-  #review:all_review_data,
   slim(:admin, locals:{info:all_user_data, movie:all_movie_data, movie_review:reviewed_movie_data})
 end
 
-post('/review') do
+post('/reviews') do
   title = params[:review_name]
   desc = params[:description]
   rating = params[:rating].to_i
@@ -236,25 +234,50 @@ post('/review') do
   redirect('/users')
 end
 
-get('/movies/edit/:id') do
+post('/reviews/:id/delete') do
+  id = params[:id].to_i
+  delete_review(id)
+  redirect('/users')
+end
+
+post('/movies/:id/delete') do
+  id = params[:id].to_i
+  delete_movie(id)
+  redirect('/users')
+end
+
+post('/users/:id/delete') do
+  id = params[:id].to_i
+  delete_user(id)
+  redirect('/')
+end
+
+get('/reviews/:id/new') do
+  id = params[:id].to_i
+  session[:movieId] = id
+  result = specific_movie(id)
+  slim(:"reviews/new",locals:{movie:result})
+end
+
+get('/movies/:id/edit') do
   id = params[:id].to_i
   result = specific_movie(id)
   slim(:"movies/edit",locals:{result:result})
 end
 
-get('/users/edit/:id') do
+get('/users/:id/edit') do
   id = params[:id].to_i
   result = user_and_desc(id)
   slim(:"users/edit",locals:{result:result})
 end
 
-get('/reviews/edit/:id') do
+get('/reviews/:id/edit') do
   id = params[:id].to_i
   result = review_movie(id)
   slim(:"reviews/edit",locals:{result:result})
 end
 
-post('/movies/edit/:id') do
+post('/movies/:id/edit') do
   id = params[:id].to_i
   title = params[:titel]
   desc = params[:desc]
@@ -263,7 +286,7 @@ post('/movies/edit/:id') do
 
 end
 
-post('/reviews/edit/:id') do
+post('/reviews/:id/edit') do
   id = params[:id].to_i
   titel = params[:titel]
   desc = params[:desc]
@@ -273,14 +296,12 @@ post('/reviews/edit/:id') do
 
 end
 
-post('/reviews/edit/delete/:id') do
+post('/users/:id/edit') do
   id = params[:id].to_i
-  delete_review(id)
+  username = params[:username]
+  desc = params[:desc]
+  update_user(id,username,desc)
   redirect('/users')
+
 end
 
-post('/movies/edit/delete/:id') do
-  id = params[:id].to_i
-  delete_movie(id)
-  redirect('/users')
-end

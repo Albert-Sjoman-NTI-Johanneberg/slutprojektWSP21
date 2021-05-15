@@ -8,7 +8,7 @@ h2 Users:
             h4 class="user_admin" = user["description"] 
             h4 class="user_admin" = user["admin"]
             h4 class="user_admin"
-                a href="users/edit/#{user['Id']}" Edit User
+                a href="users/#{user['Id']}/edit" Edit User
 
 h2 Movies:
 .container
@@ -18,7 +18,7 @@ h2 Movies:
             h5 = movie["Content"]
             img src="#{movie["img"]}" alt="Image not found" class="picture"
             h4  
-                a href="movies/edit/#{movie['Id']}" Edit
+                a href="movies/#{movie['Id']}/edit" Edit
 
 
 
@@ -34,5 +34,5 @@ h2 Reviews:
             h5 = movie[1]["Content"]
             h4 = "Rating: #{movie[1]["Rating"]}"
             h4  
-                a href="reviews/edit/#{movie[1]['Id']}" Edit
+                a href="reviews/#{movie[1]['Id']}/edit" Edit
 

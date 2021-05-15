@@ -1,0 +1,14 @@
+h1 Edit User: #{result['username']}
+
+
+form action="/users/#{result['Id']}/edit" method="post"
+    h4 Username:
+    input type="text" name="username" value="#{result['username']}"
+    h4 Description:
+    input type="text" name="desc" value="#{result['description']}"
+    input type="submit" value="Edit it"/
+
+form method="POST" action="/users/#{result['Id']}/delete"
+    input type="submit" value="delete"/
+
+

@@ -1,7 +1,7 @@
 # Slutprojekt 2021 WSP
 Slutprojekt 2021 Webbserverprogrammering.
 
-![begin](begin.jpg)
+![begin](misc/begin.jpg)
 
 ##  Uppgiftsbeskrivning
 
@@ -25,7 +25,7 @@ Du kommer även under arbetets gång få miniföreläsningar om hur du kan göra
 
 ## Lektionsplanering
 
-![tid](tid.png)
+![tid](misc/tid.png)
 
 
 

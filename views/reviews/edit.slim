@@ -1,6 +1,6 @@
 h1 Edit review 
 
-form action="/reviews/edit/#{result['Id']}" method="post"
+form action="/reviews/#{result['Id']}/edit" method="post"
     input type="text" name="titel" value="#{result['Titel']}"/
     input type="text" name="desc" value="#{result['Content']}"/
     <select id="rating" name="rating">
@@ -16,6 +16,5 @@ form action="/reviews/edit/#{result['Id']}" method="post"
         <option value="10">10</option>
     input type="submit" value="Edit it"/
 
-
-form method="POST" action="delete/#{result['Id']}"
+form method="POST" action="/reviews/#{result['Id']}/delete"
     input type="submit" value="delete"/
