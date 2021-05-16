@@ -1,4 +1,5 @@
 h1 Welcome to Imdb 2.0
+h2 genre: #{genre}
 
 form action="/reviews/show" method="post"
     <select id="genre" name="genre">
@@ -10,8 +11,10 @@ form action="/reviews/show" method="post"
         <option value="8">Science fiction</option>
         input class="checkbox" type="submit" value="Search"/
 
+
 .container
-    - movies_from_db.each do |movie|
+    - movies.each do |movie|
+        
         div class="movie"
             h1 = movie["Titel"]
             h5 = movie["Content"]
@@ -23,9 +26,3 @@ form action="/reviews/show" method="post"
             - else
                 h4 
                     a href="/reviews/#{movie["Id"]}/new" Review movie
-
-
-
-
-
-      

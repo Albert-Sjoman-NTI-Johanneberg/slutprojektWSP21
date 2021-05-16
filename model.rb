@@ -11,9 +11,9 @@ module Model
 
   def time_allfail_user_login(id)
 
-  time = Time.now.to_s
-  db = db_conect("db/imdb.db")
-  db.execute('INSERT INTO logins_failed (time,Userid) Values (?,?)', time,id)
+    time = Time.now.to_s
+    db = db_conect("db/imdb.db")
+    db.execute('INSERT INTO logins_failed (time,Userid) Values (?,?)', time,id)
 
   end
 
@@ -65,6 +65,7 @@ module Model
       File.delete("public#{img_path[0][0]}")
     end
 
+    db.execute("DELETE FROM movie_genre_rel WHERE movie_id = ?", id)
     db.execute("DELETE FROM movie WHERE Id = ?", id)
     db.execute("DELETE FROM review WHERE MovieId = ?", id)
   end
@@ -78,12 +79,6 @@ module Model
     db = SQLite3::Database.new(data)
     db.results_as_hash = true
     return db
-  end
-
-  def get_movies_from_db()
-    db = db_conect("db/imdb.db")
-    
-    result = db.execute("SELECT * FROM movie")
   end
 
   def get_user_data(userId);
@@ -111,6 +106,8 @@ module Model
         if File.exist?("public#{img["img"]}")
           File.delete("public#{img["img"]}")
         end
+        
+        db.execute("DELETE FROM movie_genre_rel WHERE movie_id = ?", img["Id"])
         db.execute("DELETE FROM movie WHERE Id = ?", img["Id"])
         db.execute("DELETE FROM review WHERE MovieId = ?", img["Id"])      
       end
@@ -145,6 +142,51 @@ module Model
     db = db_conect("db/imdb.db")
     user_review_data = db.execute('SELECT * FROM review WHERE userId = ?', userId)
 
+  end
+
+  def get_movies_with_genre(genre_id)
+    db = db_conect_without_hash("db/imdb.db")
+    movie_ids_with_genre = db.execute('SELECT movie_id FROM movie_genre_rel WHERE genre_id =?', genre_id)
+   
+    return movie_ids_with_genre
+    #movies_with_genre_id = db.execute('SELECT')
+  end
+
+
+  def movies_with_genre(movie_ids_with_genre)
+    db = db_conect("db/imdb.db")
+    result = []
+    movie_ids_with_genre.each do |movie|
+
+      temp = db.execute("SELECT * FROM movie WHERE Id =?", movie[0])
+      result << temp[0]
+    end
+    return result
+  end
+
+  def get_genre_name_from_genre_id(genre_id)
+    db = db_conect_without_hash("db/imdb.db")
+    result = db.execute('SELECT Name FROM genre WHERE Id =?', genre_id)
+    return result[0][0]
+
+  end
+
+  def get_genres()
+    db = db_conect_without_hash("db/imdb.db")
+    result = db.execute('SELECT Name FROM genre')
+    return result
+  end
+
+  def genres_that_are_checked(allgenre)
+    checked_boxes = []
+    allgenre.each do |genre|
+      p genre 
+      if genre[1] == "on"
+        checked_boxes << genre[0]
+      end
+    end
+    p checked_boxes
+    return checked_boxes
   end
 
   def search_file_ending(original_filename)
@@ -182,6 +224,21 @@ module Model
     return temp2
   end
 
+  def get_movieid_from_user_id_and_movie_name(movie_name,user_id)
+    db = db_conect_without_hash("db/imdb.db")
+    movie_id = db.execute('SELECT Id FROM movie WHERE Titel = ? AND UserId = ?', movie_name, user_id)
+    return movie_id
+
+  end
+
+  def add_genres_to_movie(genres_that_are_checked, movieid)
+    db = db_conect_without_hash("db/imdb.db")
+    genres_that_are_checked.each do |genre|
+      genre_id = db.execute('SELECT Id FROM genre WHERE Name = ?', genre)
+      db.execute("INSERT INTO movie_genre_rel (movie_id, genre_id) VALUES (?,?)", movieid[0][0], genre_id[0][0])
+    end
+  end
+
   def get_all_user_data() 
     db = db_conect("db/imdb.db")
     user_data = db.execute('SELECT username, description, Id, admin FROM users')
@@ -209,7 +266,7 @@ module Model
     i = 0
     movieId = []
     medel = []
-    movie = get_movies_from_db()
+    movie = movies_from_db()
     movie.each do |movie|
       movieId << movie["Id"]
     end

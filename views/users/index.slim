@@ -20,6 +20,7 @@ h2 Your Movies:
         div class="movie"
             h4 = movie["Titel"]
             h5 = movie["Content"]
+            h4 = "Genre: #{genre(movie["Id"])}"
             img src="#{movie["img"]}" alt="Image not found" class="picture"
             h4  
                 a href="movies/#{movie['Id']}/edit" Edit

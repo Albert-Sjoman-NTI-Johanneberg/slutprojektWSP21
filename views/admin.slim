@@ -12,10 +12,11 @@ h2 Users:
 
 h2 Movies:
 .container
-    - movie.each do |movie|
+    - movies_from_db.each do |movie|
         div class="movie"
             h4 = movie["Titel"]
             h5 = movie["Content"]
+            h4 = "Genre: #{genre(movie["Id"])}"
             img src="#{movie["img"]}" alt="Image not found" class="picture"
             h4  
                 a href="movies/#{movie['Id']}/edit" Edit

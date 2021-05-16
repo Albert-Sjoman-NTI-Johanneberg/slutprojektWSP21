@@ -15,9 +15,39 @@ include Model
 # relationstabeller / genre 
 # genre: behöver en gengre minst (db, NOTnil) ha knappar i movies som man kan välja mellan olika gengers använd movies/show 
 # Yardoc
-# helper funktioner vet ej vad jag ska använda dom till
+# Validering till checkbox och slim / def genre?
+# Edit genre both admin and client
 #BUG: 
 #
+
+helpers do
+
+  def movies_from_db
+    db = db_conect("db/imdb.db")
+      
+    result = db.execute("SELECT * FROM movie")
+
+    return result
+  end
+
+  def genre(movieid)
+    db = db_conect("db/imdb.db")
+    movie_genre = db.execute('SELECT 
+      movie.Titel, genre.Name
+    FROM((movie_genre_rel
+      INNER JOIN movie ON movie_genre_rel.movie_id = movie.Id)
+      INNER JOIN genre ON movie_genre_rel.genre_id = genre.Id)
+    WHERE movie_id = ?',movieid)
+    genres = []
+    movie_genre.each do |genre|
+      genres << genre[1]
+
+    end
+    genres = genres.join(" and ")
+    return genres
+  end
+end
+
 
 
 before do 
@@ -180,9 +210,8 @@ end
 get("/movies") do
   userid = session[:id].to_i
   rating = medel_rating()
-  result = get_movies_from_db()
   user_reviews = get_user_review_data(userid)
-  slim(:"movies/index", locals:{movie:result,review:user_reviews})
+  slim(:"movies/index", locals:{review:user_reviews})
 
 end
 
@@ -195,6 +224,18 @@ post("/movie/new") do
   movie_name = params[:movie_name]
   user_id = session[:id]  
   desc = params[:description]
+
+  genres = get_genres()
+  allgenre = Hash.new
+  allgenre["action"] = params[:action]
+  allgenre["horror"] = params[:horror]
+  allgenre["drama"] = params[:drama]
+  allgenre["romance"] = params[:romance]
+  allgenre["comedy"] = params[:comedy]
+  allgenre["science_fiction"] = params[:sciencefiction]
+
+  genres_that_are_checked = genres_that_are_checked(allgenre)
+
   org_filename = params[:file][:filename]
   file_ending = search_file_ending(org_filename)
   filename = SecureRandom.uuid + file_ending 
@@ -203,13 +244,15 @@ post("/movie/new") do
 
   FileUtils.cp(params[:file][:tempfile], "./public/img/uploaded_pictures/#{filename}")
   add_movie(movie_name, desc, dbpath, user_id)
+
+  movieid = get_movieid_from_user_id_and_movie_name(movie_name,user_id)
+  add_genres_to_movie(genres_that_are_checked, movieid)
   redirect("/users")
 end
 
 get('/admin') do
 
   all_user_data = get_all_user_data()
-  all_movie_data = get_movies_from_db()
   all_review_data = get_all_review_data()
 
 
@@ -220,18 +263,31 @@ get('/admin') do
     reviewed_movie_data << get_all_reviewed_movie_data(temp)
 
   end 
-  slim(:admin, locals:{info:all_user_data, movie:all_movie_data, movie_review:reviewed_movie_data})
+  slim(:admin, locals:{info:all_user_data, movie_review:reviewed_movie_data})
 end
 
 post('/reviews') do
   title = params[:review_name]
   desc = params[:description]
   rating = params[:rating].to_i
+
   movieId = session[:movieId]
   user_id = session[:id] 
   time = Time.now.to_i
   create_review(title, desc, rating, movieId, user_id)
   redirect('/users')
+end
+
+post('/reviews/show') do
+  userid = session[:id].to_i
+  user_reviews = get_user_review_data(userid)
+
+  genre_id = params[:genre].to_i
+  movies_with_genre = get_movies_with_genre(genre_id)
+  genre_name = get_genre_name_from_genre_id(genre_id)
+  movies = movies_with_genre(movies_with_genre)
+
+  slim(:"movies/show",locals:{genre:genre_name, review:user_reviews, movies:movies})
 end
 
 post('/reviews/:id/delete') do

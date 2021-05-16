@@ -64,3 +64,12 @@ h1,h2,h3,h4,p{
   margin: 10px auto;
   height: 100%;
 }
+
+.checkbox {
+  margin: 4px 0px 0px 10px;
+
+}
+
+.flex {
+  display: flex;
+}
