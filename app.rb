@@ -12,11 +12,12 @@ enable :sessions
 include Model
 
 # TO DO
-# relationstabeller / genre 
-# genre: behöver en gengre minst (db, NOTnil) ha knappar i movies som man kan välja mellan olika gengers använd movies/show 
 # Yardoc
 # Validering till checkbox och slim / def genre?
 # Edit genre both admin and client
+# DELTE user when admin redirect to admin panel
+# cooldown timer db_time_from_userid - Time.now
+# kan, Ändra helper INNER JOIN till en mindre version
 #BUG: 
 #
 
@@ -111,7 +112,7 @@ end
 
 post('/login') do
 
-  cooldown_minutes = 10
+  cooldown_minutes = 5
   max_recent_attemps = 3
 
   username = params[:username]

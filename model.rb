@@ -145,7 +145,10 @@ module Model
   end
 
 
+  def test
+    db = db_conect_without_hash("db/imdb.db")
 
+  end
 
   # INNER JOIN ?
   def get_movies_with_genre(genre_id)
