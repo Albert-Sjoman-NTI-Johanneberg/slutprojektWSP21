@@ -30,6 +30,14 @@ module Model
     password_digest = BCrypt::Password.create(password)
   end
 
+  def cooldown_timer(id, cooldown_minutes)
+    attempts = get_attemps(id)
+    recent_attempt = attempts[attempts.length - 1]
+    temp = Time.now - Time.parse(recent_attempt[0])
+    cooldown_time = cooldown_minutes*60 - temp
+    return cooldown_time
+  end
+
   def id_from_user(username)
     db = db_conect_without_hash("db/imdb.db")
     ids = db.execute("SELECT Id FROM users WHERE username = ?", username)
@@ -145,18 +153,11 @@ module Model
   end
 
 
-  def test
-    db = db_conect_without_hash("db/imdb.db")
-
-  end
-
-  # INNER JOIN ?
   def get_movies_with_genre(genre_id)
     db = db_conect_without_hash("db/imdb.db")
     movie_ids_with_genre = db.execute('SELECT movie_id FROM movie_genre_rel WHERE genre_id =?', genre_id)
    
     return movie_ids_with_genre
-    #movies_with_genre_id = db.execute('SELECT')
   end
 
   def get_genre_name_from_genre_id(genre_id)

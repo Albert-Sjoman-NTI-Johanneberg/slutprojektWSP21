@@ -13,11 +13,7 @@ include Model
 
 # TO DO
 # Yardoc
-# Validering till checkbox och slim / def genre?
 # Edit genre both admin and client
-# DELTE user when admin redirect to admin panel
-# cooldown timer db_time_from_userid - Time.now
-# kan, Ändra helper INNER JOIN till en mindre version
 #BUG: 
 #
 
@@ -44,7 +40,13 @@ helpers do
       genres << genre[1]
 
     end
-    genres = genres.join(" and ")
+    genres = genres.join(", ")
+    p genres
+
+    if genres == ""
+      genres = "None"
+    end
+
     return genres
   end
 end
@@ -157,7 +159,9 @@ post('/login') do
     end
 
   else
-    session[:error] = "Incorrect username or password, try again later"
+    cooldown_timer = cooldown_timer(id, cooldown_minutes)
+    cooldown_timer = cooldown_timer / 60
+    session[:error] = "Incorrect username or password, try again in #{cooldown_timer.round(1)} minutes"
     redirect('/')
   end
 
@@ -187,7 +191,7 @@ post("/users/new") do
   username = params[:username]
   password = params[:password]
   confirm_password = params[:confirm_password]
-  admin = 0
+  admin = "false"
 
   temp = id_from_user(username)
   
@@ -198,12 +202,12 @@ post("/users/new") do
       redirect("/")
 
     else
-      session[:error] = "Passwords didn't match"
+      session[:create_error] = "Passwords didn't match"
       redirect("/showregister")
     end
   
   else
-    session[:error] = "Username already exist"
+    session[:create_error] = "Username already exist"
     redirect("/showregister")
   end
 end
@@ -285,7 +289,6 @@ post('/reviews/show') do
 
   genre_id = params[:genre].to_i
 
-  # Använd INNER JOIN
   movies_with_genre = get_movies_with_genre(genre_id)
   genre_name = get_genre_name_from_genre_id(genre_id)
   
@@ -309,6 +312,10 @@ end
 post('/users/:id/delete') do
   id = params[:id].to_i
   delete_user(id)
+
+  if get_admin_info_from_user(session[:id])[0][0] == "true"
+    redirect('/admin')
+  end
   redirect('/')
 end
 
