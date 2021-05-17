@@ -283,8 +283,11 @@ post('/reviews/show') do
   user_reviews = get_user_review_data(userid)
 
   genre_id = params[:genre].to_i
+
+  # Använd INNER JOIN
   movies_with_genre = get_movies_with_genre(genre_id)
   genre_name = get_genre_name_from_genre_id(genre_id)
+  
   movies = movies_with_genre(movies_with_genre)
 
   slim(:"movies/show",locals:{genre:genre_name, review:user_reviews, movies:movies})

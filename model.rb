@@ -144,6 +144,10 @@ module Model
 
   end
 
+
+
+
+  # INNER JOIN ?
   def get_movies_with_genre(genre_id)
     db = db_conect_without_hash("db/imdb.db")
     movie_ids_with_genre = db.execute('SELECT movie_id FROM movie_genre_rel WHERE genre_id =?', genre_id)
@@ -152,6 +156,12 @@ module Model
     #movies_with_genre_id = db.execute('SELECT')
   end
 
+  def get_genre_name_from_genre_id(genre_id)
+    db = db_conect_without_hash("db/imdb.db")
+    result = db.execute('SELECT Name FROM genre WHERE Id =?', genre_id)
+    return result[0][0]
+
+  end
 
   def movies_with_genre(movie_ids_with_genre)
     db = db_conect("db/imdb.db")
