@@ -1,13 +1,37 @@
 module Model
 
+  # Searches username for any user with matching data
+  #
+  # @param [String] username, Username
+  #
+  # @return [hash]
+  # * :username [String] Username
+  # * :Id [Integer] User id
+  # * :pwdigest [String] encrypted password
+  # * :description [String] User description
+  # * :admin [String] is user admin?
+
   def get_info_user(username)
     db = db_conect("db/imdb.db")
     result = db.execute("SELECT * FROM users WHERE username = ?", username).first
   end
 
+  # checks if password is correct
+  #
+  # @param [String] pwdigest, encrypted password
+  # @param [String] password, Input password
+  #
+  # @return [True] is the password correct
+
   def password_check(pwdigest,password)
     BCrypt::Password.new(pwdigest) == password
   end
+
+  # Searches username for any user with matching data
+  #
+  # @param [Integer] id, User id
+  # @param [Time] time , Current time
+  #
 
   def time_allfail_user_login(id)
 
@@ -17,11 +41,26 @@ module Model
 
   end
 
+  # Searches user_id for any time user have failed
+  #
+  # @param [Integer] id, User id
+  #
+  # @return [Time]
+
   def get_attemps(id)
     db = db_conect_without_hash("db/imdb.db")
     times = db.execute('Select time FROM logins_failed WHERE Userid = ?', id)
     return times
   end
+
+  # Creates user with username,password and admin 
+  #
+  # @param [String] username, Username
+  # @param [String] password, password
+  # @param [String] admin, is admin?
+  # @param [String] password_digest, encrypted password
+  #
+  # @return [String] containing encrypted password
 
   def create_user(username,password,admin)
     password_digest = BCrypt::Password.create(password)
@@ -30,18 +69,49 @@ module Model
     password_digest = BCrypt::Password.create(password)
   end
 
+  # Calculates time until you can try to login again
+  #
+  # @param [Integer] id, User id
+  # @param [Integer] Cooldown_minutes
+  # 
+  # @return [Integer] Time intil you can login
+
   def cooldown_timer(id, cooldown_minutes)
     attempts = get_attemps(id)
     recent_attempt = attempts[attempts.length - 1]
     temp = Time.now - Time.parse(recent_attempt[0])
     cooldown_time = cooldown_minutes*60 - temp
+    cooldown_time = cooldown_time / 60
     return cooldown_time
   end
+
+  # Searches for id with username
+  #
+  # @param [String] username, Username
+  #
+  # @return [Integer] Id with inout username
 
   def id_from_user(username)
     db = db_conect_without_hash("db/imdb.db")
     ids = db.execute("SELECT Id FROM users WHERE username = ?", username)
     return ids
+  end
+
+
+  
+  def calculate_recent_attemps(id, cooldown_minutes)
+    attempts = get_attemps(id)
+
+    recent_attemps = []
+
+    attempts.each do |attempts|
+
+
+      if (Time.now - Time.parse(attempts[0])) < cooldown_minutes*60
+        recent_attemps << attempts
+      end
+    end
+    return recent_attemps
   end
 
   def get_admin_info_from_user(id)
@@ -76,6 +146,19 @@ module Model
     db.execute("DELETE FROM movie_genre_rel WHERE movie_id = ?", id)
     db.execute("DELETE FROM movie WHERE Id = ?", id)
     db.execute("DELETE FROM review WHERE MovieId = ?", id)
+  end
+
+  def delete_movie_img(id)
+    db = db_conect_without_hash("db/imdb.db")
+    img_path = db.execute("SELECT img FROM movie WHERE Id = ?", id)
+    if File.exist?("public#{img_path[0][0]}")    
+      File.delete("public#{img_path[0][0]}")
+    end
+  end
+
+  def update_dbpath(dbpath, id)
+    db = db_conect_without_hash("db/imdb.db")
+    db.execute('UPDATE movie SET img = ? WHERE Id = ?',dbpath ,id)
   end
 
   def db_conect_without_hash(data)
@@ -160,12 +243,6 @@ module Model
     return movie_ids_with_genre
   end
 
-  def get_genre_name_from_genre_id(genre_id)
-    db = db_conect_without_hash("db/imdb.db")
-    result = db.execute('SELECT Name FROM genre WHERE Id =?', genre_id)
-    return result[0][0]
-
-  end
 
   def movies_with_genre(movie_ids_with_genre)
     db = db_conect("db/imdb.db")
@@ -194,12 +271,10 @@ module Model
   def genres_that_are_checked(allgenre)
     checked_boxes = []
     allgenre.each do |genre|
-      p genre 
       if genre[1] == "on"
         checked_boxes << genre[0]
       end
     end
-    p checked_boxes
     return checked_boxes
   end
 
@@ -249,8 +324,19 @@ module Model
     db = db_conect_without_hash("db/imdb.db")
     genres_that_are_checked.each do |genre|
       genre_id = db.execute('SELECT Id FROM genre WHERE Name = ?', genre)
-      db.execute("INSERT INTO movie_genre_rel (movie_id, genre_id) VALUES (?,?)", movieid[0][0], genre_id[0][0])
+      db.execute("INSERT INTO movie_genre_rel (movie_id, genre_id) VALUES (?,?)", movieid, genre_id[0][0])
     end
+  end
+
+  def edit_genres_to_movie(genres_that_are_checked, id)
+    db = db_conect_without_hash("db/imdb.db")
+    p id
+
+    db.execute("DELETE FROM movie_genre_rel WHERE movie_id = ?", id)
+
+    add_genres_to_movie(genres_that_are_checked, id)
+
+    
   end
 
   def get_all_user_data() 

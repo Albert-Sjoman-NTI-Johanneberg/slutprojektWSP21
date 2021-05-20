@@ -1,9 +1,17 @@
 h1 Edit #{result['Titel']}
 
 
-form action="/movies/#{result['Id']}/edit" method="post"
+form action="/movies/#{result['Id']}/edit" method="post" enctype="multipart/form-data"
     input type="text" name="titel" value="#{result['Titel']}"/
     input type="text" name="desc" value="#{result['Content']}"/
+    input type="file" name="file"
+    <div class="flex">
+        input class="checkbox" type="checkbox" name="action" Action
+        input class="checkbox" type="checkbox" name="horror" Horror
+        input class="checkbox" type="checkbox" name="romance" Romance
+        input class="checkbox" type="checkbox" name="drama" Drama
+        input class="checkbox" type="checkbox" name="comedy" Comedy
+        input class="checkbox" type="checkbox" name="sciencefiction" Science fiction 
     input type="submit" value="Edit it"/
 
 form method="POST" action="/movies/#{result['Id']}/delete"
