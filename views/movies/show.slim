@@ -20,7 +20,7 @@ form action="/genres/show" method="post"
             h5 = movie["Content"]
             img src="#{movie["img"]}" alt="Image not found" class="picture"
             h3 = "Rating: #{movie["Rating"]}"
-            h4 = "Genre: #{genre(movie["Id"])}"
+            h4 = "Genre: #{genre_to_movies(movie["Id"])}"
             - if review.any? {|h| h["MovieId"].to_i == movie["Id"]} == true
                 h4 = "You have already reviewed this movie"
             - else

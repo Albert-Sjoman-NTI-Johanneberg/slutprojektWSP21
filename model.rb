@@ -97,7 +97,12 @@ module Model
     return ids
   end
 
-
+  # Calculets revent attemps
+  #
+  # @param [Integer] id, User id
+  # @param [Integer] cooldown_minutes, how long cooldown last
+  #
+  # @return [Array] Array with recent attemps that are shorter than cooldown minutes
   
   def calculate_recent_attemps(id, cooldown_minutes)
     attempts = get_attemps(id)
@@ -114,16 +119,35 @@ module Model
     return recent_attemps
   end
 
+  # get admin info from user with user id
+  #
+  # @param [Integer] id, user id
+  #
+  # @return [String] if admin string = "true" if not string = "false"
+
   def get_admin_info_from_user(id)
     db = db_conect_without_hash("db/imdb.db")
     admin = db.execute("SELECT admin FROM users WHERE Id = ?", id)
     return admin
   end
 
+  # Supdates movie with titel and description
+  #
+  # @param [Integer] id, User id 
+  # @param [String] title, movie titel
+  # @param [String] desc, movie description
+
   def update_movie(title,id,desc)
     db = db_conect_without_hash("db/imdb.db")
     db.execute('UPDATE movie SET titel = ?, Content = ? WHERE Id = ?',title,desc,id)
   end
+
+  # Supdates movie with titel and description
+  #
+  # @param [Integer] id, User id 
+  # @param [String] titel, review titel
+  # @param [String] desc, review description
+  # @param [Integer] rating, review rating
 
   def update_review(id,titel,desc,rating)
     db = db_conect_without_hash("db/imdb.db")
